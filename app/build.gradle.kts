@@ -49,7 +49,13 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    //implementation("androidx.core:core-ktx:1.13.1")
+
+    // implementation(libs.androidx.navigation.compose.jvmstubs)
     testImplementation(libs.junit)
+   // implementation(androidx.navigation:navigation-compose:2.9.1)
+    implementation("androidx.navigation:navigation-compose:2.9.1")
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
