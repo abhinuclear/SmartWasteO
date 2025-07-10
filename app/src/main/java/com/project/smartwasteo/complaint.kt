@@ -1,6 +1,6 @@
 package com.project.smartwasteo
 
-data class Data_model(
+data class Complaint(
     var name: String =" ",
     var mobno: String ="",
     var address: String ="",
