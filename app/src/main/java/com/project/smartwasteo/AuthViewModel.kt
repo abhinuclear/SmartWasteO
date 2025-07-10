@@ -27,23 +27,24 @@ class AuthViewModel: ViewModel() {
             _authState.value=AuthState.Authenticated
         }
     }
-    fun login(email:String,password: String){
-        if(email.isEmpty()||password.isEmpty()){
-            _authState.value=AuthState.Error("Email or Password can't be empty")
+    fun login(email:String,password: String) {
+        if (email.isEmpty() || password.isEmpty()) {
+            _authState.value = AuthState.Error("Email or Password can't be empty")
             return
 
         }
-        _authState.value=AuthState.Loading
+        _authState.value = AuthState.Loading
 
-        auth.signInWithEmailAndPassword(email,password)
-            .addOnCompleteListener { task->
-                if(task.isSuccessful){
-                    _authState.value=AuthState.Authenticated
-                }else{
-                    _authState.value=AuthState.Error(task.exception?.message?:"Something went wrong")
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    _authState.value = AuthState.Authenticated
+                } else {
+                    _authState.value =
+                        AuthState.Error(task.exception?.message ?: "Something went wrong")
                 }
             }
-
+    }
 
         fun signout() {
             FirebaseAuth.getInstance().signOut()
@@ -51,7 +52,6 @@ class AuthViewModel: ViewModel() {
         }
 
 
-    }
 
     sealed class  AuthState{
         object Authenticated: AuthState()
