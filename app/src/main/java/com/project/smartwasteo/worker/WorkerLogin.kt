@@ -109,8 +109,8 @@ fun WorkerLogin(
                     onClick = {
                         if (otpCode.value.length >= 6) {
                             viewModel.verifyOtp(otpCode.value) {
-                                navController.navigate("dashboard_worker") {
-                                    popUpTo("phoneAuth") { inclusive = true }
+                                navController.navigate("dashboardWorker") {
+                                 //   popUpTo("phoneAuth") { inclusive = true }
                                 }
                             }
                         } else {
