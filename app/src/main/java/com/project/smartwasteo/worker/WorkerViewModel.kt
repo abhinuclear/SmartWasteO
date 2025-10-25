@@ -1,75 +1,132 @@
 package com.project.smartwasteo.worker
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
-import com.mapbox.geojson.LineString
-import com.mapbox.geojson.Point
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import okhttp3.OkHttpClient
-import okhttp3.Request
+import java.net.URL
+
+data class RoutePoint(val latitude: Double, val longitude: Double)
+
+@Serializable
+data class OSRMResponse(
+    val code: String,
+    val routes: List<Route>? = null
+)
+
+@Serializable
+data class Route(
+    val geometry: String,
+    val distance: Double,
+    val duration: Double
+)
 
 class WorkerViewModel : ViewModel() {
 
     private val _routePoints = MutableStateFlow<List<RoutePoint>>(emptyList())
     val routePoints: StateFlow<List<RoutePoint>> = _routePoints
 
+    private val _isLoadingRoute = MutableStateFlow(false)
+    val isLoadingRoute: StateFlow<Boolean> = _isLoadingRoute
+
+    private val _routeError = MutableStateFlow<String?>(null)
+    val routeError: StateFlow<String?> = _routeError
+
     init {
-        fetchPointsFromFirebase()
+        // Example: Load route on initialization
+        loadRouteFromOSRM(
+            coordinates = listOf(
+                RoutePoint(26.9124, 75.7873),  // Jaipur
+                RoutePoint(26.9260, 75.8235),  // Another point
+                RoutePoint(26.9389, 75.8501)   // Another point
+            )
+        )
     }
 
-    fun fetchPointsFromFirebase() {
-        val ref = FirebaseDatabase.getInstance().getReference("complaints")
-
-        ref.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val coords = snapshot.children.mapNotNull {
-                    val lat = it.child("latitude").getValue(Double::class.java)
-                    val lon = it.child("longitude").getValue(Double::class.java)
-                    if (lat != null && lon != null) RoutePoint(lat, lon) else null
-                }
-                getOptimizedRouteFromOSRM(coords)
-            }
-
-            override fun onCancelled(error: DatabaseError) {}
-        })
-    }
-
-    private fun getOptimizedRouteFromOSRM(points: List<RoutePoint>) {
-        if (points.isEmpty()) return
-
-        val coordsStr = points.joinToString(";") { "${it.longitude},${it.latitude}" }
-        val url = "https://router.project-osrm.org/trip/v1/driving/$coordsStr?roundtrip=true&source=first"
-
+    fun loadRouteFromOSRM(coordinates: List<RoutePoint>) {
         viewModelScope.launch {
-            val client = OkHttpClient()
-            val request = Request.Builder().url(url).build()
-
             try {
-                val response = client.newCall(request).execute()
-                val body = response.body?.string() ?: return@launch
-                val route = Json.decodeFromString<OSRMTripResponse>(body)
+                _isLoadingRoute.value = true
+                _routeError.value = null
 
-                val sortedPoints = route.waypoints
-                    .sortedBy { it.waypoint_index }
-                    .map { RoutePoint(it.location[1], it.location[0]) }
+                // Build OSRM API URL
+                val coordString = coordinates.joinToString(";") {
+                    "${it.longitude},${it.latitude}"
+                }
 
+                val url = "https://router.project-osrm.org/route/v1/driving/$coordString?overview=full&geometries=polyline"
 
-                _routePoints.value = sortedPoints
+                Log.d("WorkerViewModel", "Fetching route from: $url")
+
+                // Use Dispatchers.IO for network operations
+                val response = withContext(Dispatchers.IO) {
+                    URL(url).readText()
+                }
+
+                Log.d("WorkerViewModel", "Response received")
+
+                val json = Json { ignoreUnknownKeys = true }
+                val osrmResponse = json.decodeFromString<OSRMResponse>(response)
+
+                if (osrmResponse.code == "Ok" && osrmResponse.routes?.isNotEmpty() == true) {
+                    val geometry = osrmResponse.routes[0].geometry
+                    val decodedPoints = decodePolyline(geometry)
+                    _routePoints.value = decodedPoints
+                    Log.d("WorkerViewModel", "Route loaded with ${decodedPoints.size} points")
+                } else {
+                    _routeError.value = "No route found"
+                    Log.e("WorkerViewModel", "OSRM response code: ${osrmResponse.code}")
+                }
 
             } catch (e: Exception) {
-                e.printStackTrace()
+                _routeError.value = "Failed to load route: ${e.message}"
+                Log.e("WorkerViewModel", "Error loading route", e)
+            } finally {
+                _isLoadingRoute.value = false
             }
         }
     }
-}
-fun buildRouteGeoJson(points: List<RoutePoint>): LineString {
-    val coordinates = points.map { Point.fromLngLat(it.longitude, it.latitude) }
-    return LineString.fromLngLats(coordinates)
+
+    private fun decodePolyline(encoded: String): List<RoutePoint> {
+        val poly = ArrayList<RoutePoint>()
+        var index = 0
+        val len = encoded.length
+        var lat = 0
+        var lng = 0
+
+        while (index < len) {
+            var b: Int
+            var shift = 0
+            var result = 0
+            do {
+                b = encoded[index++].code - 63
+                result = result or (b and 0x1f shl shift)
+                shift += 5
+            } while (b >= 0x20)
+            val dlat = if (result and 1 != 0) (result shr 1).inv() else result shr 1
+            lat += dlat
+
+            shift = 0
+            result = 0
+            do {
+                b = encoded[index++].code - 63
+                result = result or (b and 0x1f shl shift)
+                shift += 5
+            } while (b >= 0x20)
+            val dlng = if (result and 1 != 0) (result shr 1).inv() else result shr 1
+            lng += dlng
+
+            val latitude = lat.toDouble() / 1E5
+            val longitude = lng.toDouble() / 1E5
+            poly.add(RoutePoint(latitude, longitude))
+        }
+
+        return poly
+    }
 }
