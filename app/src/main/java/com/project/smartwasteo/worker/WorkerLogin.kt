@@ -110,7 +110,8 @@ fun WorkerLogin(
                         if (otpCode.value.length >= 6) {
                             viewModel.verifyOtp(otpCode.value) {
                                 navController.navigate("dashboardWorker") {
-                                 //   popUpTo("phoneAuth") { inclusive = true }
+                                    popUpTo("workerLogin") { inclusive = true }
+                                    launchSingleTop= true
                                 }
                             }
                         } else {
