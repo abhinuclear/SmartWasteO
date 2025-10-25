@@ -1,66 +1,107 @@
 package com.project.smartwasteo.worker
 
+import android.util.Log
 import android.view.View
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-//import com.google.android.gms.maps.CameraUpdateFactory
-//import com.google.android.gms.maps.model.LatLng
-//import com.google.android.gms.maps.model.PolylineOptions
-import com.mapbox.geojson.LineString
-import com.mapbox.geojson.Point
-import com.mapbox.mapboxsdk.annotations.PolylineOptions
-import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
-import com.mapbox.mapboxsdk.geometry.LatLng
-import com.mapbox.mapboxsdk.maps.MapView
-import com.mapbox.mapboxsdk.maps.Style
+
+import org.maplibre.android.maps.MapView
+import org.maplibre.android.maps.Style
+import org.maplibre.android.camera.CameraUpdateFactory
+import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.annotations.PolylineOptions
 
 import com.project.smartwasteo.AuthViewModel
+import android.graphics.Color as AndroidColor
 
 @Composable
 fun Dashboard_worker(
     modifier: Modifier = Modifier,
     navController: NavController,
     authViewModel: AuthViewModel,
-    viewModel: WorkerViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: WorkerViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val points by viewModel.routePoints.collectAsState()
     val mapView = rememberMapViewWithLifecycle()
+    val isLoadingRoute by viewModel.isLoadingRoute.collectAsState()
+    val routeError by viewModel.routeError.collectAsState()
 
-    AndroidView(
-        factory = { mapView },
-        modifier = Modifier.fillMaxSize(),
-        update = { view ->
-            view.getMapAsync { mapLibreMap ->
-                mapLibreMap.setStyle(
-                    Style.Builder().fromUri("https://tiles.stadiamaps.com/styles/alidade_smooth.json")
-                ) {
-                    if (points.isNotEmpty()) {
-                        val latLngList = points.map { LatLng(it.latitude, it.longitude) }
-                        val firstLatLng = latLngList.first()
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Map
+        AndroidView(
+            factory = { mapView },
+            modifier = Modifier.fillMaxSize(),
+            update = { view ->
+                view.getMapAsync { mapLibreMap ->
+                    //stadia map api key
+                    val stadiaApiKey= "34169669-6b9c-4b66-9366-26ae8a66e012"
 
-                        // Move camera to first location
-                        mapLibreMap.moveCamera(CameraUpdateFactory.newLatLngZoom(firstLatLng, 13.0))
+                        val styleUrl="https://tiles.stadiamaps.com/styles/alidade_smooth.json?api_key=$stadiaApiKey"
 
-                        // Draw line
-                        val polylineOptions = PolylineOptions()
-                            .addAll(latLngList)
-                            .color(android.graphics.Color.BLUE)
-                            .width(5f)
+                    mapLibreMap.setStyle(Style.Builder().fromUri(styleUrl)) {
+                        if (points.isNotEmpty()) {
+                            val latLngList = points.map { LatLng(it.latitude, it.longitude) }
+                            val firstLatLng = latLngList.first()
 
-                        mapLibreMap.addPolyline(polylineOptions)
+                            // Move camera to first location
+                            mapLibreMap.moveCamera(
+                                CameraUpdateFactory.newLatLngZoom(firstLatLng, 13.0)
+                            )
+
+                            // Draw route line
+                            val polylineOptions = PolylineOptions()
+                                .addAll(latLngList)
+                                .color(AndroidColor.BLUE)
+                                .width(5f)
+
+                            mapLibreMap.addPolyline(polylineOptions)
+
+                            Log.d("Dashboard", "Route drawn with ${latLngList.size} points")
+                        }
                     }
                 }
             }
+        )
+
+        // Loading indicator
+        if (isLoadingRoute) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
         }
-    )
+
+        // Error message
+        routeError?.let { error ->
+            Snackbar(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.BottomCenter)
+            ) {
+                Text(text = error)
+            }
+        }
+    }
 }
 
 @Composable
@@ -85,6 +126,7 @@ fun rememberMapViewWithLifecycle(): MapView {
         lifecycle.addObserver(observer)
         onDispose {
             lifecycle.removeObserver(observer)
+            mapView.onDestroy()
         }
     }
 
