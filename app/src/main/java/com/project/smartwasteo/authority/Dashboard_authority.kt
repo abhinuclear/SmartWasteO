@@ -7,13 +7,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.project.smartwasteo.AuthViewModel
 
-
-    @Composable
-    fun Dashboard_authority(
-        modifier: Modifier = Modifier,
-        navController: NavController,
-        authViewModel: AuthViewModel
-    ) {
-        val complaintViewModel: ComplaintViewModel = viewModel()
-        ComplaintScreen(viewModel = complaintViewModel)
-    }
+@Composable
+fun Dashboard_authority(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    authViewModel: AuthViewModel
+) {
+    val complaintViewModel: ComplaintViewModel = viewModel()
+    ComplaintScreen(
+        navController = navController,  // Pass navController here
+        viewModel = complaintViewModel
+    )
+}
