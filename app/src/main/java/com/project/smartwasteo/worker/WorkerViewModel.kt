@@ -42,9 +42,12 @@ class WorkerViewModel : ViewModel() {
         // Example: Load route on initialization
         loadRouteFromOSRM(
             coordinates = listOf(
-                RoutePoint(26.9124, 75.7873),  // Jaipur
-                RoutePoint(26.9260, 75.8235),  // Another point
-                RoutePoint(26.9389, 75.8501)   // Another point
+                RoutePoint(26.855758, 75.820475),  // Jaipur
+                RoutePoint(26.853973, 75.819995),  // Another point
+
+                RoutePoint(26.848938, 75.819920),
+
+            // Another point
             )
         )
     }
