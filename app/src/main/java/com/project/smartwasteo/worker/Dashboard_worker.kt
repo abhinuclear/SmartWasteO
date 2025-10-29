@@ -21,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 
 import org.maplibre.android.maps.MapView
+import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.Style
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
@@ -42,42 +43,43 @@ fun Dashboard_worker(
     val isLoadingRoute by viewModel.isLoadingRoute.collectAsState()
     val routeError by viewModel.routeError.collectAsState()
 
+    var mapLibreMap by remember { mutableStateOf<MapLibreMap?>(null) }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Map
         AndroidView(
             factory = { mapView },
             modifier = Modifier.fillMaxSize(),
             update = { view ->
-                view.getMapAsync { mapLibreMap ->
-                    //stadia map api key
-                    val stadiaApiKey= "34169669-6b9c-4b66-9366-26ae8a66e012"
+                view.getMapAsync { map ->
+                    mapLibreMap = map
 
-                        val styleUrl="https://tiles.stadiamaps.com/styles/alidade_smooth.json?api_key=$stadiaApiKey"
+                    // Stadia map api key
+                    val stadiaApiKey = "34169669-6b9c-4b66-9366-26ae8a66e012"
+                    val styleUrl = "https://tiles.stadiamaps.com/styles/alidade_smooth.json?api_key=$stadiaApiKey"
 
-                    mapLibreMap.setStyle(Style.Builder().fromUri(styleUrl)) {
+                    map.setStyle(Style.Builder().fromUri(styleUrl)) { style ->
+                        Log.d("Dashboard", "Map style loaded")
+
+                        // Draw route if points are available
                         if (points.isNotEmpty()) {
-                            val latLngList = points.map { LatLng(it.latitude, it.longitude) }
-                            val firstLatLng = latLngList.first()
-
-                            // Move camera to first location
-                            mapLibreMap.moveCamera(
-                                CameraUpdateFactory.newLatLngZoom(firstLatLng, 13.0)
-                            )
-
-                            // Draw route line
-                            val polylineOptions = PolylineOptions()
-                                .addAll(latLngList)
-                                .color(AndroidColor.BLUE)
-                                .width(5f)
-
-                            mapLibreMap.addPolyline(polylineOptions)
-
-                            Log.d("Dashboard", "Route drawn with ${latLngList.size} points")
+                            drawRoute(map, points)
                         }
                     }
                 }
             }
         )
+
+        // Draw route when points change
+        LaunchedEffect(points) {
+            if (points.isNotEmpty() && mapLibreMap != null) {
+                mapLibreMap?.getStyle { style ->
+                    if (style.isFullyLoaded) {
+                        drawRoute(mapLibreMap!!, points)
+                    }
+                }
+            }
+        }
 
         // Loading indicator
         if (isLoadingRoute) {
@@ -102,6 +104,29 @@ fun Dashboard_worker(
             }
         }
     }
+}
+
+private fun drawRoute(map: MapLibreMap, points: List<RoutePoint>) {
+    // Clear existing polylines
+    map.clear()
+
+    if (points.isEmpty()) return
+
+    val latLngList = points.map { LatLng(it.latitude, it.longitude) }
+    val firstLatLng = latLngList.first()
+
+    // Move camera to first location
+    map.moveCamera(CameraUpdateFactory.newLatLngZoom(firstLatLng, 15.0))
+
+    // Draw route line
+    val polylineOptions = PolylineOptions()
+        .addAll(latLngList)
+        .color(AndroidColor.BLUE)
+        .width(8f)
+
+    map.addPolyline(polylineOptions)
+
+    Log.d("Dashboard", "✅ Route drawn with ${latLngList.size} points")
 }
 
 @Composable
