@@ -55,7 +55,7 @@ fun FirstScreen(modifier: Modifier,navController: NavController) {
 
             Button(
                 onClick = {
-                    navController.navigate("workerauthority")
+                    navController.navigate("workerlogin")
                 },
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(contentColor = Color.Yellow),
