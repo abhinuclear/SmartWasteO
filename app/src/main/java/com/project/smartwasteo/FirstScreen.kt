@@ -18,6 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.font.FontWeight
 //import androidx.compose.ui.semantics.SemanticsActions.OnClick
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,17 +28,40 @@ import androidx.navigation.NavController
 @Composable
 fun FirstScreen(modifier: Modifier,navController: NavController) {
 
+    val gradientColors = listOf(
+        Color(0xFFE6E6FA),
+        Color(0xFF87CEEB)
+    )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Yellow)
+            .background(
+                brush =Brush.verticalGradient(
+                    colors=gradientColors
+                )
+            )
 
     ) {
         Column(
             modifier = Modifier
                 .align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        ){
+            Text(
+                text="WASTRO",
+                fontSize=48.sp,
+                fontWeight=FontWeight.Bold,
+                color=Color(0xFF9870DB),
+                letterSpacing=2.sp
+            )
+            Text(
+                text="Smart Waste Management",
+                fontSize=16.sp,
+                color=Color(0xFF4682B4),
+               // modifier=Modifier.padding(bottom=48.sp)
+            )
+        }
             Button(
                 onClick = {
                     navController.navigate("loginauthority")
@@ -44,7 +69,9 @@ fun FirstScreen(modifier: Modifier,navController: NavController) {
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(contentColor = Color.Yellow),
                 modifier = modifier
-                    .size(150.dp)
+                    .padding(top = 125.dp, start = 114.dp)
+                    .size(180.dp)
+
 
             ) {
                 Text(
@@ -60,8 +87,9 @@ fun FirstScreen(modifier: Modifier,navController: NavController) {
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(contentColor = Color.Yellow),
                 modifier = modifier
+                    .padding(top = 520.dp, start = 114.dp)
 
-                    .size(150.dp)
+                    .size(180.dp)
 
 
             ) {
@@ -72,7 +100,7 @@ fun FirstScreen(modifier: Modifier,navController: NavController) {
     }
 
 
-}
+
 
 
 
