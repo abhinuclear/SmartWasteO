@@ -52,18 +52,18 @@ class WorkerViewModel : ViewModel() {
         )
     }
 
-    fun loadRouteFromOSRM(coordinates: List<RoutePoint>) {
+   private fun loadRouteFromOSRM(coordinates: List<RoutePoint>) {
         viewModelScope.launch {
             try {
                 _isLoadingRoute.value = true
                 _routeError.value = null
 
                 // Build OSRM API URL
-                val coordString = coordinates.joinToString(";") {
+                val cordString = coordinates.joinToString(";") {
                     "${it.longitude},${it.latitude}"
                 }
 
-                val url = "https://router.project-osrm.org/route/v1/driving/$coordString?overview=full&geometries=polyline"
+                val url = "https://router.project-osrm.org/route/v1/driving/$cordString?overview=full&geometries=polyline"
 
                 Log.d("WorkerViewModel", "Fetching route from: $url")
 
@@ -100,8 +100,6 @@ class WorkerViewModel : ViewModel() {
         val poly = ArrayList<RoutePoint>()
         var index = 0
         val len = encoded.length
-        var lat = 0
-        var lng = 0
 
         while (index < len) {
             var b: Int
@@ -112,8 +110,8 @@ class WorkerViewModel : ViewModel() {
                 result = result or (b and 0x1f shl shift)
                 shift += 5
             } while (b >= 0x20)
-            val dlat = if (result and 1 != 0) (result shr 1).inv() else result shr 1
-            lat += dlat
+            var lat = if (result and 1 != 0) (result shr 1).inv() else result shr 1
+            lat += lat
 
             shift = 0
             result = 0
@@ -122,8 +120,8 @@ class WorkerViewModel : ViewModel() {
                 result = result or (b and 0x1f shl shift)
                 shift += 5
             } while (b >= 0x20)
-            val dlng = if (result and 1 != 0) (result shr 1).inv() else result shr 1
-            lng += dlng
+            var lng = if (result and 1 != 0) (result shr 1).inv() else result shr 1
+            lng += lng
 
             val latitude = lat.toDouble() / 1E5
             val longitude = lng.toDouble() / 1E5
