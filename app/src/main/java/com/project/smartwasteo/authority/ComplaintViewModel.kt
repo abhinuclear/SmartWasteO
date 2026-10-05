@@ -1,6 +1,5 @@
 package com.project.smartwasteo.authority
 
-//package com.project.smartwasteo.authority
 
 import android.util.Log
 import androidx.compose.runtime.State
@@ -8,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.google.firebase.database.*
 import com.project.smartwasteo.Complaint
-//import com.project.smartwasteo.model.Complaint
 
 class ComplaintViewModel : ViewModel() {
     private val _complaints = mutableStateOf<List<Complaint>>(emptyList())
@@ -36,4 +34,5 @@ class ComplaintViewModel : ViewModel() {
             }
         })
     }
+
 }

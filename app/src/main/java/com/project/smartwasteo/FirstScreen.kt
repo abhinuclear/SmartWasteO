@@ -59,7 +59,6 @@ fun FirstScreen(modifier: Modifier,navController: NavController) {
                 text="Smart Waste Management",
                 fontSize=16.sp,
                 color=Color(0xFF4682B4),
-               // modifier=Modifier.padding(bottom=48.sp)
             )
         }
             Button(

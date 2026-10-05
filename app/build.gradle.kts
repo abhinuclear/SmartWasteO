@@ -3,6 +3,11 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.firebase.crashlytics)
+    //kotlin("plugin.serialization") version "2.0.21" apply false
+
+
 }
 
 android {
@@ -51,17 +56,20 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.firebase.auth)
-    //implementation(libs.firebase.crashlytics.buildtools)
-    //implementation("androidx.core:core-ktx:1.13.1")
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.firebase.database)
-    //implementation("com.google.firebase:firebase-auth-ktx")
+    implementation(libs.firebase.crashlytics)
 
-    // implementation(libs.androidx.navigation.compose.jvmstubs)
     testImplementation(libs.junit)
-   // implementation(androidx.navigation:navigation-compose:2.9.1)
+
     implementation("androidx.navigation:navigation-compose:2.9.1")
-    implementation ("org.maplibre.gl:android-sdk:9.5.0")
+
+    implementation("org.maplibre.gl:android-sdk:11.5.1" )
+
+    implementation ("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

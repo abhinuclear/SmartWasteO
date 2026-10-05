@@ -16,9 +16,7 @@ class PhoneAuthViewModel : ViewModel() {
     var verificationId = mutableStateOf("")
     var otpSent = mutableStateOf(false)
     var isLoading = mutableStateOf(false)
-
     var errorMessage = mutableStateOf<String?>(null)
-
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
@@ -50,8 +48,6 @@ class PhoneAuthViewModel : ViewModel() {
     }
 
     fun verifyOtp(code: String, onSuccess: () -> Unit) {
-      //  _isLoading.value = true
-       // _errorMessage.value = null
         val credential = PhoneAuthProvider.getCredential(verificationId.value, code)
         signInWithPhoneAuthCredential(credential, onSuccess)
     }

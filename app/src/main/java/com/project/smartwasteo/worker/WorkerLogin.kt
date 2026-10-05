@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
-import androidx.compose.material3.AlertDialogDefaults.shape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,14 +17,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.project.smartwasteo.AuthViewModel
 import com.project.smartwasteo.PhoneAuthViewModel
 
 @Composable
 fun WorkerLogin(
     modifier: Modifier = Modifier,
     navController: NavController,
-    authViewModel: AuthViewModel,
     viewModel: PhoneAuthViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -65,10 +62,10 @@ fun WorkerLogin(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
-                        .fillMaxWidth()
+                        . width(260.dp)
                         .height(60.dp)
+                        .align(Alignment.CenterHorizontally)
                         .background(Color.White, shape = RoundedCornerShape(16.dp))
-                   // modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -86,7 +83,9 @@ fun WorkerLogin(
                         }
                     },
                     enabled = !isLoading,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.
+                    width(160.dp)
+                        .align(Alignment.CenterHorizontally)
                 ) {
                     Text("Send OTP")
                 }
@@ -119,7 +118,9 @@ fun WorkerLogin(
                         }
                     },
                     enabled = !isLoading,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .width(160.dp)
+                        .align(Alignment.CenterHorizontally)
                 ) {
                     Text("Verify OTP")
                 }

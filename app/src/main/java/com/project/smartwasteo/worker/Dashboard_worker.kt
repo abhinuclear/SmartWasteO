@@ -20,33 +20,33 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 
+import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.Style
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.annotations.PolylineOptions
+import org.maplibre.android.geometry.LatLngBounds
 
-import com.project.smartwasteo.AuthViewModel
 import android.graphics.Color as AndroidColor
 
 @Composable
 fun Dashboard_worker(
     modifier: Modifier = Modifier,
     navController: NavController,
-    authViewModel: AuthViewModel,
     viewModel: WorkerViewModel = viewModel()
 ) {
-    val context = LocalContext.current
     val points by viewModel.routePoints.collectAsState()
     val mapView = rememberMapViewWithLifecycle()
     val isLoadingRoute by viewModel.isLoadingRoute.collectAsState()
     val routeError by viewModel.routeError.collectAsState()
 
+
     var mapLibreMap by remember { mutableStateOf<MapLibreMap?>(null) }
+    val complaintPoints by viewModel.complaintPoints.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Map
         AndroidView(
             factory = { mapView },
             modifier = Modifier.fillMaxSize(),
@@ -61,27 +61,24 @@ fun Dashboard_worker(
                     map.setStyle(Style.Builder().fromUri(styleUrl)) { style ->
                         Log.d("Dashboard", "Map style loaded")
 
-                        // Draw route if points are available
                         if (points.isNotEmpty()) {
-                            drawRoute(map, points)
+                            drawRoute(map, points,complaintPoints)
                         }
                     }
                 }
             }
         )
 
-        // Draw route when points change
-        LaunchedEffect(points) {
-            if (points.isNotEmpty() && mapLibreMap != null) {
+        LaunchedEffect(points, complaintPoints,mapLibreMap) {
+            if ((points.isNotEmpty() || complaintPoints.isNotEmpty()) && mapLibreMap != null) {
                 mapLibreMap?.getStyle { style ->
                     if (style.isFullyLoaded) {
-                        drawRoute(mapLibreMap!!, points)
+                        drawRoute(mapLibreMap!!, points, complaintPoints)
                     }
                 }
             }
         }
 
-        // Loading indicator
         if (isLoadingRoute) {
             Box(
                 modifier = Modifier
@@ -93,7 +90,7 @@ fun Dashboard_worker(
             }
         }
 
-        // Error message
+
         routeError?.let { error ->
             Snackbar(
                 modifier = Modifier
@@ -106,18 +103,13 @@ fun Dashboard_worker(
     }
 }
 
-private fun drawRoute(map: MapLibreMap, points: List<RoutePoint>) {
-    // Clear existing polylines
+private fun drawRoute(map: MapLibreMap, points: List<RoutePoint>,complaintPoints: List<RoutePoint>) {
+
     map.clear()
 
     if (points.isEmpty()) return
 
     val latLngList = points.map { LatLng(it.latitude, it.longitude) }
-    val firstLatLng = latLngList.first()
-
-    // Move camera to first location
-    map.moveCamera(CameraUpdateFactory.newLatLngZoom(firstLatLng, 15.0))
-
     // Draw route line
     val polylineOptions = PolylineOptions()
         .addAll(latLngList)
@@ -125,6 +117,36 @@ private fun drawRoute(map: MapLibreMap, points: List<RoutePoint>) {
         .width(8f)
 
     map.addPolyline(polylineOptions)
+
+    complaintPoints.forEachIndexed { index, complaint ->
+        val location = LatLng(
+            complaint.latitude,
+            complaint.longitude
+        )
+
+        map.addMarker(
+            MarkerOptions()
+                .position(location)
+                .title("Complaint ${index + 1}")
+        )
+    }
+    if (latLngList.size >= 2) {
+        val boundsBuilder = LatLngBounds.Builder()
+
+        latLngList.forEach { point ->
+            boundsBuilder.include(point)
+        }
+
+        val bounds = boundsBuilder.build()
+
+        map.animateCamera(
+            CameraUpdateFactory.newLatLngBounds(bounds, 80)
+        )
+    } else {
+        map.animateCamera(
+            CameraUpdateFactory.newLatLngZoom(latLngList.first(), 15.0)
+        )
+    }
 
     Log.d("Dashboard", "✅ Route drawn with ${latLngList.size} points")
 }

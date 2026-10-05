@@ -11,12 +11,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 
 @Composable
 fun ComplaintScreen(
     navController: NavController,
-    viewModel: ComplaintViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
+    viewModel: ComplaintViewModel =viewModel()) {
     val list = viewModel.complaints.value
     BackHandler {
         navController.navigate("firstScreen") {
@@ -24,7 +25,7 @@ fun ComplaintScreen(
             launchSingleTop = true
         }
     }
-    Column(modifier = Modifier.padding(35.dp)) {
+    Column(modifier = Modifier.padding(10.dp)) {
         Text("Complaints", fontSize = 26.sp, fontWeight = FontWeight.Bold)
 
         list.forEach { complaint ->

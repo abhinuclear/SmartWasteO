@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -30,20 +29,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.compose.runtime.livedata.observeAsState
-import com.google.firebase.auth.FirebaseAuth
-//import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.auth.AuthState
 import com.project.smartwasteo.AuthViewModel
 import com.project.smartwasteo.AuthViewModel.AuthState
 
 
 @Composable
 fun LoginAuthority(
-    modifier: Modifier, navController: NavController, authViewModel: AuthViewModel
+    modifier: Modifier, navController: NavController,
+    authViewModel: AuthViewModel
 ) {
 
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
-    // Text("Authority Login Page")
 
     LaunchedEffect(authState.value) {
 
@@ -72,7 +69,6 @@ fun LoginAuthority(
         Column(
             modifier = modifier.fillMaxSize()
                 .background(Color.Yellow),
-                    //.padding(top = 350.dp),
                     verticalArrangement = Arrangement . Center,
             horizontalAlignment = Alignment.CenterHorizontally
         )

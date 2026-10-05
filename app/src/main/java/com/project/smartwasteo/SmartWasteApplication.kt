@@ -5,7 +5,6 @@ import android.util.Log
 import org.maplibre.android.MapLibre
 import org.maplibre.android.WellKnownTileServer
 
-//import org.maplibre.android.*
 
 class SmartWasteApplication : Application() {
     override fun onCreate() {
@@ -13,17 +12,15 @@ class SmartWasteApplication : Application() {
         Log.d("SmartWasteApp", "Application started")
 
         try {
-            // Try with WellKnownTileServer
             MapLibre.getInstance(
                 applicationContext,
                 null,
                 WellKnownTileServer.MapLibre
             )
-            Log.d("SmartWasteApp", "MapLibre initialized with WellKnownTileServer")
+            Log.d("SmartWasteApp", "MapLibre initialized")
         } catch (e: Exception) {
-            // Fallback to simple initialization
+            Log.e("SmartWasteApp", "MapLibre initialized (fallback)",e)
             MapLibre.getInstance(applicationContext)
-            Log.d("SmartWasteApp", "MapLibre initialized (fallback)")
         }
     }
 }
